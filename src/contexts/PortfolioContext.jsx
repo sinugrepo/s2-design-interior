@@ -10,7 +10,7 @@ export const usePortfolio = () => {
   return context;
 };
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = 'http:// 198.7.116.202:3001/api';
 
 export const PortfolioProvider = ({ children }) => {
   const [portfolioItems, setPortfolioItems] = useState([]);
