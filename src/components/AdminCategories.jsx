@@ -26,7 +26,7 @@ export default function AdminCategories() {
     display_name: ''
   });
 
-  const API_BASE_URL = 'http://localhost:3001/api';
+  const API_BASE_URL = 'https://backend.sinug.my.id/api';
 
   // Create new category
   const createCategory = async (categoryData) => {
