@@ -10,7 +10,7 @@ export const useTestimonials = () => {
   return context;
 };
 
-const API_BASE_URL = 'https://backend.sinug.my.id/api';
+const API_BASE_URL = 'http://localhost:3001/api';
 
 export const TestimonialsProvider = ({ children }) => {
   const [testimonials, setTestimonials] = useState([]);
@@ -51,22 +51,23 @@ export const TestimonialsProvider = ({ children }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
         },
         body: JSON.stringify(testimonialData),
       });
 
+      const result = await response.json();
+
       if (!response.ok) {
-        throw new Error('Failed to add testimonial');
+        return { success: false, error: result.error || 'Failed to add testimonial' };
       }
 
-      const result = await response.json();
       const newTestimonial = result.success ? result.data : result;
       setTestimonials(prev => [...prev, newTestimonial]);
-      return newTestimonial;
+      return { success: true, data: newTestimonial };
     } catch (error) {
       console.error('Error adding testimonial:', error);
-      throw error;
+      return { success: false, error: error.message || 'Failed to add testimonial' };
     }
   };
 
@@ -76,24 +77,25 @@ export const TestimonialsProvider = ({ children }) => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
         },
         body: JSON.stringify(testimonialData),
       });
 
+      const result = await response.json();
+
       if (!response.ok) {
-        throw new Error('Failed to update testimonial');
+        return { success: false, error: result.error || 'Failed to update testimonial' };
       }
 
-      const result = await response.json();
       const updatedTestimonial = result.success ? result.data : result;
       setTestimonials(prev => prev.map(testimonial => 
         testimonial.id === id ? updatedTestimonial : testimonial
       ));
-      return updatedTestimonial;
+      return { success: true, data: updatedTestimonial };
     } catch (error) {
       console.error('Error updating testimonial:', error);
-      throw error;
+      return { success: false, error: error.message || 'Failed to update testimonial' };
     }
   };
 
@@ -102,18 +104,20 @@ export const TestimonialsProvider = ({ children }) => {
       const response = await fetch(`${API_BASE_URL}/testimonials/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
         }
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete testimonial');
+        const result = await response.json();
+        return { success: false, error: result.error || 'Failed to delete testimonial' };
       }
 
       setTestimonials(prev => prev.filter(testimonial => testimonial.id !== id));
+      return { success: true };
     } catch (error) {
       console.error('Error deleting testimonial:', error);
-      throw error;
+      return { success: false, error: error.message || 'Failed to delete testimonial' };
     }
   };
 

@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { CategoryProvider } from './contexts/CategoryContext';
-import { PortfolioProvider } from './contexts/PortfolioContext';
+import { ProjectsProvider } from './contexts/ProjectsContext';
 import { TestimonialsProvider } from './contexts/TestimonialsContext';
 import { AuthProvider } from './contexts/AuthContext';
+import { ModalProvider } from './contexts/ModalContext';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import About from './components/About';
@@ -11,13 +11,15 @@ import Portfolio from './components/Portfolio';
 import Testimonials from './components/Testimonials';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
+import ProjectDetail from './components/ProjectDetail';
 import LoginPage from './components/LoginPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminLayout from './components/AdminLayout';
 import AdminDashboard from './components/AdminDashboard';
-import AdminPortfolio from './components/AdminPortfolio';
+import AdminProjects from './components/AdminProjects';
 import AdminCategories from './components/AdminCategories';
 import AdminTestimonials from './components/AdminTestimonials';
+import NotFound from './components/NotFound';
 
 // Main homepage component
 function HomePage() {
@@ -38,14 +40,15 @@ function HomePage() {
 function App() {
   return (
     <AuthProvider>
-      <CategoryProvider>
-        <PortfolioProvider>
+      <ModalProvider>
+        <ProjectsProvider>
           <TestimonialsProvider>
             <Router>
               <div className="min-h-screen bg-white">
                 <Routes>
                   {/* Public Routes */}
                   <Route path="/" element={<HomePage />} />
+                  <Route path="/project/:id" element={<ProjectDetail />} />
                   <Route path="/login" element={<LoginPage />} />
                   
                   {/* Protected Admin Routes */}
@@ -55,16 +58,19 @@ function App() {
                     </ProtectedRoute>
                   }>
                     <Route index element={<AdminDashboard />} />
-                    <Route path="portfolio" element={<AdminPortfolio />} />
-                    <Route path="testimonials" element={<AdminTestimonials />} />
+                    <Route path="projects" element={<AdminProjects />} />
                     <Route path="categories" element={<AdminCategories />} />
+                    <Route path="testimonials" element={<AdminTestimonials />} />
                   </Route>
+
+                  {/* 404 Catch-all Route - Must be last */}
+                  <Route path="*" element={<NotFound />} />
                 </Routes>
               </div>
             </Router>
           </TestimonialsProvider>
-        </PortfolioProvider>
-      </CategoryProvider>
+        </ProjectsProvider>
+      </ModalProvider>
     </AuthProvider>
   );
 }

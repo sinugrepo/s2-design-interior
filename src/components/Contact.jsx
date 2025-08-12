@@ -11,9 +11,9 @@ import {
 const contactInfo = [
   {
     icon: MapPinIcon,
-    title: 'Visit Our Workshop',
+    title: 'Visit Our Office',
     details: 'Jelambar, West Jakarta',
-    description: 'Come see our showroom and workshop in person',
+    description: 'Come see our showroom and office in person',
     action: 'Get Directions',
     link: 'https://maps.app.goo.gl/Tk6vn5GnxHzmtpVG7'
   },

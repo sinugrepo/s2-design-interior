@@ -1,18 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   PlusIcon, 
   PencilIcon, 
   TrashIcon, 
   XMarkIcon,
-  UserIcon,
-  StarIcon
+  StarIcon,
+  UserCircleIcon
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import { useTestimonials } from '../contexts/TestimonialsContext';
+import { useModal } from '../contexts/ModalContext';
 
 export default function AdminTestimonials() {
-  const { testimonials, addTestimonial, updateTestimonial, deleteTestimonial } = useTestimonials();
+  const { testimonials, isLoading, error, addTestimonial, updateTestimonial, deleteTestimonial } = useTestimonials();
+  const { showError, showConfirm, showSuccess } = useModal();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTestimonial, setEditingTestimonial] = useState(null);
   const [formData, setFormData] = useState({
@@ -52,33 +54,57 @@ export default function AdminTestimonials() {
     resetForm();
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!formData.name.trim() || !formData.quote.trim()) {
-      alert('Name and quote are required!');
+      showError('Data Tidak Lengkap', 'Nama dan testimoni harus diisi!');
       return;
     }
 
     try {
+      let result;
       if (editingTestimonial) {
         // Update existing testimonial
-        updateTestimonial(editingTestimonial.id, formData);
+        result = await updateTestimonial(editingTestimonial.id, formData);
       } else {
         // Add new testimonial
-        addTestimonial(formData);
+        result = await addTestimonial(formData);
       }
       
-      closeModal();
+      if (result.success) {
+        showSuccess(
+          'Berhasil!', 
+          editingTestimonial 
+            ? 'Testimoni berhasil diperbarui!' 
+            : 'Testimoni baru berhasil ditambahkan!'
+        );
+        closeModal();
+      } else {
+        showError('Gagal Menyimpan', result.error || 'Terjadi kesalahan saat menyimpan testimoni');
+      }
     } catch (error) {
-      alert(error.message);
+      showError('Error', error.message || 'Terjadi kesalahan yang tidak terduga');
     }
   };
 
-  const handleDelete = (testimonialId) => {
-    if (window.confirm('Are you sure you want to delete this testimonial? This action cannot be undone.')) {
-      deleteTestimonial(testimonialId);
-    }
+  const handleDelete = (testimonial) => {
+    showConfirm(
+      'Hapus Testimoni',
+      `Apakah Anda yakin ingin menghapus testimoni dari "${testimonial.name}"? Tindakan ini tidak dapat dibatalkan.`,
+      async () => {
+        try {
+          const result = await deleteTestimonial(testimonial.id);
+          if (result.success) {
+            showSuccess('Berhasil!', 'Testimoni berhasil dihapus');
+          } else {
+            showError('Gagal Menghapus', result.error || 'Terjadi kesalahan saat menghapus testimoni');
+          }
+        } catch (error) {
+          showError('Error', error.message || 'Terjadi kesalahan yang tidak terduga');
+        }
+      }
+    );
   };
 
   const handleInputChange = (e) => {
@@ -127,7 +153,7 @@ export default function AdminTestimonials() {
       <div className="mb-8">
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
-            <UserIcon className="w-8 h-8 text-brand-brown-600" />
+            <UserCircleIcon className="w-8 h-8 text-brand-brown-600" />
             <div className="ml-4">
               <h3 className="text-lg font-medium text-gray-900">Total Testimonials</h3>
               <p className="text-2xl font-bold text-brand-brown-600">{testimonials.length}</p>
@@ -167,7 +193,7 @@ export default function AdminTestimonials() {
                   <PencilIcon className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => handleDelete(testimonial.id)}
+                  onClick={() => handleDelete(testimonial)}
                   className="p-2 text-gray-400 hover:text-red-600 transition-colors"
                 >
                   <TrashIcon className="w-4 h-4" />
@@ -184,7 +210,7 @@ export default function AdminTestimonials() {
 
       {testimonials.length === 0 && (
         <div className="text-center py-12">
-          <UserIcon className="mx-auto h-12 w-12 text-gray-400" />
+          <UserCircleIcon className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-2 text-sm font-medium text-gray-900">No testimonials</h3>
           <p className="mt-1 text-sm text-gray-500">Get started by adding a new testimonial.</p>
           <div className="mt-6">
@@ -212,7 +238,7 @@ export default function AdminTestimonials() {
                 <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                   <div className="sm:flex sm:items-start">
                     <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-brand-brown-100 sm:mx-0 sm:h-10 sm:w-10">
-                      <UserIcon className="h-6 w-6 text-brand-brown-600" />
+                      <UserCircleIcon className="h-6 w-6 text-brand-brown-600" />
                     </div>
                     <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
                       <h3 className="text-lg leading-6 font-medium text-gray-900">

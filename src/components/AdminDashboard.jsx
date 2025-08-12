@@ -1,32 +1,41 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
-  PhotoIcon,
   UserIcon,
-  TagIcon,
   ChartBarIcon,
   PlusIcon,
-  EyeIcon
+  EyeIcon,
+  FolderIcon,
+  TagIcon
 } from '@heroicons/react/24/outline';
-import { usePortfolio } from '../contexts/PortfolioContext';
+import { useProjects } from '../contexts/ProjectsContext';
 import { useTestimonials } from '../contexts/TestimonialsContext';
-import { useCategories } from '../contexts/CategoryContext';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function AdminDashboard() {
-  const { portfolioItems } = usePortfolio();
+  const { projects } = useProjects();
   const { testimonials } = useTestimonials();
-  const { categories } = useCategories();
   const { user } = useAuth();
+
+  // Get unique categories count
+  const categoriesCount = new Set(projects.filter(p => p.category).map(p => p.category)).size;
 
   const stats = [
     {
-      name: 'Portfolio Items',
-      value: portfolioItems.length,
-      icon: PhotoIcon,
-      color: 'bg-blue-500',
-      link: '/admin/portfolio',
-      action: 'Manage Portfolio'
+      name: 'Projects',
+      value: projects.length,
+      icon: FolderIcon,
+      color: 'bg-indigo-500',
+      link: '/admin/projects',
+      action: 'Manage Projects'
+    },
+    {
+      name: 'Categories',
+      value: categoriesCount,
+      icon: TagIcon,
+      color: 'bg-purple-500',
+      link: '/admin/categories',
+      action: 'Manage Categories'
     },
     {
       name: 'Testimonials',
@@ -35,14 +44,6 @@ export default function AdminDashboard() {
       color: 'bg-green-500',
       link: '/admin/testimonials',
       action: 'Manage Testimonials'
-    },
-    {
-      name: 'Categories',
-      value: categories.filter(cat => cat.id !== 'all').length,
-      icon: TagIcon,
-      color: 'bg-purple-500',
-      link: '/admin/categories',
-      action: 'Manage Categories'
     },
     {
       name: 'Total Views',
@@ -55,10 +56,11 @@ export default function AdminDashboard() {
   ];
 
   const recentActivity = [
-    { action: 'Portfolio item added', item: 'Modern Kitchen Design', time: '2 hours ago' },
+    { action: 'Project added', item: 'Modern Office Complex', time: '2 hours ago' },
+    { action: 'Category created', item: 'Commercial Space', time: '4 hours ago' },
     { action: 'Testimonial updated', item: 'Sarah Johnson review', time: '5 hours ago' },
-    { action: 'Category created', item: 'Garden Design', time: '1 day ago' },
-    { action: 'Portfolio item updated', item: 'Luxury Bathroom', time: '2 days ago' },
+    { action: 'Project created', item: 'Luxury Residential Villa', time: '1 day ago' },
+    { action: 'Project updated', item: 'Contemporary Family Home', time: '2 days ago' },
   ];
 
   return (
@@ -118,18 +120,31 @@ export default function AdminDashboard() {
           <h2 className="text-xl font-semibold text-gray-900 mb-6">Quick Actions</h2>
           <div className="space-y-4">
             <Link
-              to="/admin/portfolio"
-              className="flex items-center p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors group"
+              to="/admin/projects"
+              className="flex items-center p-4 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors group"
             >
-              <div className="p-2 bg-blue-500 rounded-lg mr-4">
+              <div className="p-2 bg-indigo-500 rounded-lg mr-4">
                 <PlusIcon className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h3 className="font-medium text-gray-900 group-hover:text-blue-700">Add Portfolio Item</h3>
-                <p className="text-sm text-gray-600">Upload new design work</p>
+                <h3 className="font-medium text-gray-900 group-hover:text-indigo-700">Add New Project</h3>
+                <p className="text-sm text-gray-600">Create a new project showcase</p>
               </div>
             </Link>
-            
+
+            <Link
+              to="/admin/categories"
+              className="flex items-center p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors group"
+            >
+              <div className="p-2 bg-purple-500 rounded-lg mr-4">
+                <PlusIcon className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-medium text-gray-900 group-hover:text-purple-700">Add Category</h3>
+                <p className="text-sm text-gray-600">Create project categories</p>
+              </div>
+            </Link>
+
             <Link
               to="/admin/testimonials"
               className="flex items-center p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors group"
@@ -140,19 +155,6 @@ export default function AdminDashboard() {
               <div>
                 <h3 className="font-medium text-gray-900 group-hover:text-green-700">Add Testimonial</h3>
                 <p className="text-sm text-gray-600">Add client feedback</p>
-              </div>
-            </Link>
-            
-            <Link
-              to="/admin/categories"
-              className="flex items-center p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors group"
-            >
-              <div className="p-2 bg-purple-500 rounded-lg mr-4">
-                <PlusIcon className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <h3 className="font-medium text-gray-900 group-hover:text-purple-700">Create Category</h3>
-                <p className="text-sm text-gray-600">Organize your content</p>
               </div>
             </Link>
           </div>
@@ -199,26 +201,12 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Portfolio by Category */}
           <div className="text-center">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Portfolio Distribution</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Project Distribution</h3>
             <div className="space-y-2">
-              {categories.filter(cat => cat.id !== 'all').slice(0, 4).map((category) => {
-                const count = portfolioItems.filter(item => item.category === category.id).length;
-                const percentage = portfolioItems.length > 0 ? (count / portfolioItems.length) * 100 : 0;
-                return (
-                  <div key={category.id} className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">{category.name}</span>
-                    <div className="flex items-center">
-                      <div className="w-20 bg-gray-200 rounded-full h-2 mr-2">
-                        <div 
-                          className="bg-brand-brown-500 h-2 rounded-full" 
-                          style={{ width: `${percentage}%` }}
-                        />
-                      </div>
-                      <span className="text-sm font-medium text-gray-900">{count}</span>
-                    </div>
-                  </div>
-                );
-              })}
+              <div className="text-2xl font-bold text-brand-brown-600 mb-2">
+                {projects.length}
+              </div>
+              <p className="text-sm text-gray-600">Total Projects</p>
             </div>
           </div>
 
@@ -235,20 +223,24 @@ export default function AdminDashboard() {
           </div>
 
           {/* Quick Stats */}
-          <div className="text-center">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">This Month</h3>
-            <div className="space-y-2">
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Stats</h3>
+            <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">New Portfolio</span>
-                <span className="text-sm font-medium text-green-600">+3</span>
+                <span className="text-sm text-gray-600">New Projects</span>
+                <span className="text-sm font-medium text-indigo-600">{projects.filter(p => new Date(p.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">New Testimonials</span>
-                <span className="text-sm font-medium text-green-600">+2</span>
+                <span className="text-sm text-gray-600">Project Categories</span>
+                <span className="text-sm font-medium text-purple-600">{categoriesCount}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Categories</span>
-                <span className="text-sm font-medium text-blue-600">{categories.length - 1}</span>
+                <span className="text-sm text-gray-600">Portfolio Items</span>
+                <span className="text-sm font-medium text-blue-600">{projects.length}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">Client Reviews</span>
+                <span className="text-sm font-medium text-green-600">{testimonials.length}</span>
               </div>
             </div>
           </div>

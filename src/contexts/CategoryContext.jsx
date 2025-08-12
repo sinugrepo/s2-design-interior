@@ -10,7 +10,7 @@ export const useCategories = () => {
   return context;
 };
 
-const API_BASE_URL = 'https://backend.sinug.my.id/api';
+const API_BASE_URL = 'http://localhost:3001/api';
 
 export const CategoryProvider = ({ children }) => {
   const [categories, setCategories] = useState([]);
@@ -36,12 +36,10 @@ export const CategoryProvider = ({ children }) => {
       // Fallback to default categories if backend fails
       setCategories([
         { id: 'all', name: 'All', slug: 'all' },
-        { id: 'living-room', name: 'Living Room', slug: 'living-room' },
-        { id: 'kitchen', name: 'Kitchen', slug: 'kitchen' },
-        { id: 'bedroom', name: 'Bedroom', slug: 'bedroom' },
-        { id: 'dining-room', name: 'Dining Room', slug: 'dining-room' },
+        { id: 'public-space', name: 'Public Space', slug: 'public-space' },
         { id: 'office', name: 'Office', slug: 'office' },
-        { id: 'bathroom', name: 'Bathroom', slug: 'bathroom' }
+        { id: 'residential', name: 'Residential', slug: 'residential' },
+        { id: 'apartment', name: 'Apartment', slug: 'apartment' }
       ]);
     } finally {
       setIsLoading(false);

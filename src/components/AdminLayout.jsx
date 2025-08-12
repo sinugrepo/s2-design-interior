@@ -3,32 +3,38 @@ import { Link, useLocation, Outlet } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   HomeIcon,
-  PhotoIcon,
   UserIcon,
-  TagIcon,
   Bars3Icon,
   XMarkIcon,
   ArrowRightOnRectangleIcon,
-  ChartBarIcon
+  ChartBarIcon,
+  FolderIcon,
+  TagIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../contexts/AuthContext';
+import { useModal } from '../contexts/ModalContext';
 
 const navigation = [
   { name: 'Dashboard', href: '/admin', icon: ChartBarIcon },
-  { name: 'Portfolio', href: '/admin/portfolio', icon: PhotoIcon },
-  { name: 'Testimonials', href: '/admin/testimonials', icon: UserIcon },
+  { name: 'Projects', href: '/admin/projects', icon: FolderIcon },
   { name: 'Categories', href: '/admin/categories', icon: TagIcon },
+  { name: 'Testimonials', href: '/admin/testimonials', icon: UserIcon },
 ];
 
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const { logout, user } = useAuth();
+  const { showConfirm } = useModal();
 
   const handleLogout = () => {
-    if (window.confirm('Are you sure you want to logout?')) {
-      logout();
-    }
+    showConfirm(
+      'Konfirmasi Logout',
+      'Apakah Anda yakin ingin keluar dari sistem admin?',
+      () => {
+        logout();
+      }
+    );
   };
 
   return (

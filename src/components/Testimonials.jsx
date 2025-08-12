@@ -13,7 +13,7 @@ export default function Testimonials() {
   
   const [sliderRef] = useKeenSlider({
     loop: true,
-    mode: "free",
+    mode: "free-snap",
     slides: {
       perView: 1,
       spacing: 15,
@@ -46,10 +46,13 @@ export default function Testimonials() {
         if (mouseOver) return;
         timeout = setTimeout(() => {
           slider.next();
-        }, 4000);
+        }, 3000); // Reduced from 4000 to 3000ms for more frequent transitions
       }
       
       slider.on("created", () => {
+        // Auto start the slider
+        nextTimeout();
+        
         slider.container.addEventListener("mouseover", () => {
           mouseOver = true;
           clearNextTimeout();
@@ -58,12 +61,25 @@ export default function Testimonials() {
           mouseOver = false;
           nextTimeout();
         });
-        nextTimeout();
+        
+        // Handle touch events for mobile
+        slider.container.addEventListener("touchstart", () => {
+          mouseOver = true;
+          clearNextTimeout();
+        });
+        slider.container.addEventListener("touchend", () => {
+          mouseOver = false;
+          // Small delay before resuming auto slide after touch
+          setTimeout(() => {
+            if (!mouseOver) nextTimeout();
+          }, 1000);
+        });
       });
       
       slider.on("dragStarted", clearNextTimeout);
       slider.on("animationEnded", nextTimeout);
       slider.on("updated", nextTimeout);
+      slider.on("slideChanged", nextTimeout);
     },
   ]);
 
@@ -105,18 +121,23 @@ export default function Testimonials() {
             <div ref={sliderRef} className="keen-slider">
               {testimonials.map((testimonial) => (
                 <div key={testimonial.id} className="keen-slider__slide">
-                  <div className="bg-white p-8 rounded-2xl shadow-sm h-full">
+                  <div className="bg-white p-8 rounded-2xl shadow-sm h-full flex flex-col min-h-[280px]">
+                    {/* Stars Rating - Fixed at top */}
                     <div className="flex items-center mb-4">
                       {[...Array(testimonial.rating || 5)].map((_, i) => (
                         <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
                       ))}
                     </div>
-                    <blockquote className="text-gray-600 mb-6 leading-relaxed">
+                    
+                    {/* Quote - Takes available space */}
+                    <blockquote className="text-gray-600 leading-relaxed flex-grow mb-6">
                       "{testimonial.quote}"
                     </blockquote>
-                    <div className="flex items-center">
+                    
+                    {/* Profile - Fixed at bottom */}
+                    <div className="flex items-center mt-auto">
                       <img
-                        className="w-12 h-12 rounded-full object-cover"
+                        className="w-12 h-12 rounded-full object-cover flex-shrink-0"
                         src={testimonial.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80'}
                         alt={testimonial.name}
                         onError={(e) => {
