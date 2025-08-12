@@ -4,9 +4,10 @@ import { useInView } from 'framer-motion';
 import { useKeenSlider } from 'keen-slider/react';
 import 'keen-slider/keen-slider.min.css';
 import { Star } from 'lucide-react';
-import { testimonialsData } from '../data/testimonials';
+import { useTestimonials } from '../contexts/TestimonialsContext';
 
 export default function Testimonials() {
+  const { testimonials, isLoading, error } = useTestimonials();
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   
@@ -86,39 +87,56 @@ export default function Testimonials() {
           </motion.div>
         </div>
         
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="mt-16"
-        >
-          <div ref={sliderRef} className="keen-slider">
-            {testimonialsData.map((testimonial) => (
-              <div key={testimonial.id} className="keen-slider__slide">
-                <div className="bg-white p-8 rounded-2xl shadow-sm h-full">
-                  <div className="flex items-center mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                    ))}
-                  </div>
-                  <blockquote className="text-gray-600 mb-6 leading-relaxed">
-                    "{testimonial.quote}"
-                  </blockquote>
-                  <div className="flex items-center">
-                    <img
-                      className="w-12 h-12 rounded-full object-cover"
-                      src={testimonial.avatar}
-                      alt={testimonial.name}
-                    />
-                    <div className="ml-4">
-                      <div className="font-semibold text-gray-900">{testimonial.name}</div>
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64 mt-16">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-brown-600"></div>
+          </div>
+        ) : error ? (
+          <div className="mt-16 text-center">
+            <p className="text-gray-500">Unable to load testimonials at the moment.</p>
+          </div>
+        ) : testimonials && testimonials.length > 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mt-16"
+          >
+            <div ref={sliderRef} className="keen-slider">
+              {testimonials.map((testimonial) => (
+                <div key={testimonial.id} className="keen-slider__slide">
+                  <div className="bg-white p-8 rounded-2xl shadow-sm h-full">
+                    <div className="flex items-center mb-4">
+                      {[...Array(testimonial.rating || 5)].map((_, i) => (
+                        <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                      ))}
+                    </div>
+                    <blockquote className="text-gray-600 mb-6 leading-relaxed">
+                      "{testimonial.quote}"
+                    </blockquote>
+                    <div className="flex items-center">
+                      <img
+                        className="w-12 h-12 rounded-full object-cover"
+                        src={testimonial.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80'}
+                        alt={testimonial.name}
+                        onError={(e) => {
+                          e.target.src = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80';
+                        }}
+                      />
+                      <div className="ml-4">
+                        <div className="font-semibold text-gray-900">{testimonial.name}</div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          </motion.div>
+        ) : (
+          <div className="mt-16 text-center">
+            <p className="text-gray-500">No testimonials available yet.</p>
           </div>
-        </motion.div>
+        )}
       </div>
     </section>
   );

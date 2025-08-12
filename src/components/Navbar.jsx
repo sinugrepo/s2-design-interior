@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Dialog, DialogPanel } from '@headlessui/react';
-import { Bars3Icon, XMarkIcon, CogIcon } from '@heroicons/react/24/outline';
-import { Link } from 'react-router-dom';
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 
 const navigation = [
   { name: 'About', href: '#about' },
@@ -59,14 +58,7 @@ export default function Navbar() {
             </button>
           ))}
         </div>
-        <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:items-center lg:gap-4">
-          <Link
-            to="/admin/portfolio"
-            className="text-gray-400 hover:text-brand-brown-600 transition-colors duration-200"
-            title="Portfolio Management"
-          >
-            <CogIcon className="h-5 w-5" />
-          </Link>
+        <div className="hidden lg:flex lg:flex-1 lg:justify-end">
           <button
             onClick={scrollToContact}
             className="rounded-md bg-brand-brown-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-brown-700 transition-colors duration-200"
@@ -104,13 +96,6 @@ export default function Navbar() {
                     {item.name}
                   </button>
                 ))}
-                <Link
-                  to="/admin/portfolio"
-                  className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-500 hover:bg-gray-50"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Portfolio Management
-                </Link>
               </div>
               <div className="py-6">
                 <button

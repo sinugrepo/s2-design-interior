@@ -78,14 +78,14 @@ export default function About() {
                 With over <span className="font-semibold text-brand-brown-600">12 years of experience</span> and nearly <span className="font-semibold text-brand-brown-600">200 projects completed</span> across Jakarta and other cities, we've helped homeowners, apartment dwellers, and business owners transform their spaces into something they love.
               </p>
               <p className="text-lg leading-8 text-gray-700 mb-6">
-                We have <span className="font-semibold text-brand-brown-600">two in-house workshops</span> located in West Jakarta to ensure that every detail — from design to execution — is managed and built with precision.
+                We have <span className="font-semibold text-brand-brown-600">two in-house workshops</span> located in West Jakarta to ensure that every detail   from design to execution   is managed and built with precision.
               </p>
               <p className="text-lg leading-8 text-gray-700 mb-8">
                 Our design team combines creativity with technical know-how, while our craftsmen bring those ideas to life with high-quality custom furniture.
               </p>
               <div className="bg-brand-brown-50 border-l-4 border-brand-brown-600 p-6 rounded-r-lg">
                 <p className="text-xl font-medium text-brand-brown-800 italic">
-                  "Your vision, our commitment — let's build something beautiful together."
+                  "Your vision, our commitment   let's build something beautiful together."
                 </p>
               </div>
             </div>

@@ -2,19 +2,28 @@ import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'framer-motion';
 import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
-import { portfolioData, portfolioCategories } from '../data/portfolio';
+import { usePortfolio } from '../contexts/PortfolioContext';
+import { useCategories } from '../contexts/CategoryContext';
 
 export default function Portfolio() {
+  const { portfolioItems, getPortfolioItemsByCategory } = usePortfolio();
+  const { categories } = useCategories();
   const [currentImage, setCurrentImage] = useState(0);
   const [viewerIsOpen, setViewerIsOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState('all');
+  const [showMore, setShowMore] = useState(false);
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   // Filter portfolio data based on active category
-  const filteredPortfolio = activeCategory === 'all' 
-    ? portfolioData 
-    : portfolioData.filter(item => item.category === activeCategory);
+  const allFilteredPortfolio = getPortfolioItemsByCategory(activeCategory);
+  
+  // Limit items for "all" category with show more functionality
+  const filteredPortfolio = activeCategory === 'all' && !showMore 
+    ? allFilteredPortfolio.slice(0, 12)
+    : allFilteredPortfolio;
+
+  const hasMoreItems = activeCategory === 'all' && allFilteredPortfolio.length > 12;
 
   const openLightbox = (index) => {
     setCurrentImage(index);
@@ -45,6 +54,12 @@ export default function Portfolio() {
     if (e.key === 'ArrowRight') goToNext();
   };
 
+  // Reset show more when category changes
+  const handleCategoryChange = (categoryId) => {
+    setActiveCategory(categoryId);
+    setShowMore(false);
+  };
+
   return (
     <section id="portfolio" className="py-24 bg-white">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -60,7 +75,7 @@ export default function Portfolio() {
               200+ Projects. But Our Goal Is Always the Same: Making You Feel at Home.
             </p>
             <p className="mt-6 text-lg leading-8 text-gray-600">
-              Every project we take on tells a different story — from cozy living rooms to spacious kitchens, from playful kids' rooms to welcoming cafés. We design spaces that work for your daily life, not just look good in photos. Browse our portfolio and discover how we've helped others transform their space — maybe yours is next.
+              Every project we take on tells a different story   from cozy living rooms to spacious kitchens, from playful kids' rooms to welcoming cafés. We design spaces that work for your daily life, not just look good in photos. Browse our portfolio and discover how we've helped others transform their space   maybe yours is next.
             </p>
           </motion.div>
         </div>
@@ -73,10 +88,10 @@ export default function Portfolio() {
           className="mt-12"
         >
           <div className="flex flex-wrap justify-center gap-2 sm:gap-4">
-            {portfolioCategories.map((category) => (
+            {categories.map((category) => (
               <button
                 key={category.id}
-                onClick={() => setActiveCategory(category.id)}
+                onClick={() => handleCategoryChange(category.id)}
                 className={`
                   px-4 py-2 sm:px-6 sm:py-3 rounded-full text-sm sm:text-base font-medium transition-all duration-300 hover:scale-105
                   ${activeCategory === category.id
@@ -97,13 +112,12 @@ export default function Portfolio() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="mt-16"
         >
-          {/* Improved Gallery Grid with better sizing */}
+          {/* Improved Gallery Grid with consistent sizing */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
             {filteredPortfolio.map((photo, index) => {
-              // Calculate dynamic height based on aspect ratio
+              // Simplified aspect ratio logic
               const aspectRatio = photo.width / photo.height;
-              const isWide = aspectRatio > 1.3;
-              const isTall = aspectRatio < 0.8;
+              const isPortrait = aspectRatio < 1.0;
               
               return (
                 <motion.div
@@ -111,18 +125,11 @@ export default function Portfolio() {
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className={`
-                    relative overflow-hidden rounded-xl cursor-pointer group shadow-md hover:shadow-xl transition-all duration-300
-                    ${isWide ? 'sm:col-span-2' : ''}
-                    ${isTall ? 'sm:row-span-2' : ''}
-                    ${index === 0 || (index + 1) % 5 === 0 ? 'lg:col-span-2 lg:row-span-2' : ''}
-                  `}
+                  className="relative overflow-hidden rounded-xl cursor-pointer group shadow-md hover:shadow-xl transition-all duration-300"
                   onClick={() => openLightbox(index)}
                 >
-                  <div className={`
-                    relative w-full overflow-hidden
-                    ${isTall ? 'h-80 sm:h-96 lg:h-[500px]' : isWide ? 'h-48 sm:h-56 lg:h-64' : 'h-64 sm:h-72 lg:h-80'}
-                  `}>
+                  {/* Fixed height container for consistent layout */}
+                  <div className="relative w-full h-64 sm:h-72 lg:h-80">
                     <img
                       src={photo.src}
                       alt={photo.alt}
@@ -138,7 +145,7 @@ export default function Portfolio() {
                         </div>
                         <p className="text-sm font-medium px-4">{photo.alt}</p>
                         <p className="text-xs text-gray-300 mt-1 capitalize">
-                          {portfolioCategories.find(cat => cat.id === photo.category)?.name}
+                          {categories.find(cat => cat.id === photo.category)?.name}
                         </p>
                       </div>
                     </div>
@@ -147,6 +154,29 @@ export default function Portfolio() {
               );
             })}
           </div>
+          
+          {/* Show More Button */}
+          {hasMoreItems && !showMore && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="text-center mt-12"
+            >
+              <button
+                onClick={() => setShowMore(true)}
+                className="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-full text-white bg-brand-brown-600 hover:bg-brand-brown-700 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
+              >
+                Show More Projects
+                <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <p className="text-gray-500 mt-3 text-sm">
+                Showing {filteredPortfolio.length} of {allFilteredPortfolio.length} projects
+              </p>
+            </motion.div>
+          )}
           
           {/* Empty state when no items match filter */}
           {filteredPortfolio.length === 0 && (
@@ -228,7 +258,7 @@ export default function Portfolio() {
               <div className="absolute bottom-4 left-4 right-4 bg-black bg-opacity-50 text-white p-4 rounded-lg backdrop-blur-sm">
                 <h3 className="text-lg font-semibold mb-1">{filteredPortfolio[currentImage].alt}</h3>
                 <p className="text-sm text-gray-300 capitalize">
-                  {portfolioCategories.find(cat => cat.id === filteredPortfolio[currentImage].category)?.name}
+                  {categories.find(cat => cat.id === filteredPortfolio[currentImage].category)?.name}
                 </p>
                 {filteredPortfolio.length > 1 && (
                   <p className="text-xs text-gray-400 mt-2">

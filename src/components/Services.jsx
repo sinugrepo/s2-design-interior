@@ -15,7 +15,7 @@ const services = [
     id: 1,
     emoji: '🛋️',
     title: 'Interior Design for Homes & Apartments',
-    description: 'We create beautiful, functional, and personalized interiors — complete with 3D visuals so you know exactly what you\'re getting before we build.',
+    description: 'We create beautiful, functional, and personalized interiors   complete with 3D visuals so you know exactly what you\'re getting before we build.',
     icon: HomeIcon,
     features: ['3D Visualization', 'Personalized Design', 'Space Planning', 'Material Selection']
   },
@@ -31,7 +31,7 @@ const services = [
     id: 3,
     emoji: '🪑',
     title: 'Custom Furniture Production',
-    description: 'Need a wardrobe that fits that tricky corner? Or a kitchen set that suits your exact needs? Our workshop team builds furniture that\'s tailored to your space and style — with top-notch craftsmanship.',
+    description: 'Need a wardrobe that fits that tricky corner? Or a kitchen set that suits your exact needs? Our workshop team builds furniture that\'s tailored to your space and style   with top-notch craftsmanship.',
     icon: CubeIcon,
     features: ['Custom Wardrobes', 'Kitchen Sets', 'Built-in Storage', 'Quality Craftsmanship']
   },
@@ -39,7 +39,7 @@ const services = [
     id: 4,
     emoji: '🤝',
     title: '3D Design Collaboration with Contractors',
-    description: 'Working with your own contractor? No problem — we can support with precise 3D designs that guide the project clearly from start to finish.',
+    description: 'Working with your own contractor? No problem   we can support with precise 3D designs that guide the project clearly from start to finish.',
     icon: HandRaisedIcon,
     features: ['3D Technical Drawings', 'Contractor Support', 'Project Guidance', 'Clear Documentation']
   }
