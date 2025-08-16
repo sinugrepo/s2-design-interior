@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useProjects } from '../contexts/ProjectsContext';
+import { useScroll } from '../contexts/ScrollContext';
+import { useResponsive } from '../hooks/useResponsive';
 
 // Helper function to format category display
 const formatCategoryName = (category) => {
@@ -15,11 +17,35 @@ const formatCategoryName = (category) => {
 
 export default function Portfolio() {
   const { projects, categories } = useProjects();
+  const { saveScrollPosition, getScrollPosition } = useScroll();
+  const { isMobile } = useResponsive();
+  const location = useLocation();
   const [showMore, setShowMore] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const navigate = useNavigate();
   const ref = useRef(null);
+  const portfolioSectionRef = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  // Restore scroll position on component mount
+  useEffect(() => {
+    const savedScrollPosition = getScrollPosition('portfolio');
+    
+    // Only restore scroll position if we explicitly have location state indicating we came from project detail
+    const isFromProjectDetail = location.state?.scrollToPortfolio === true;
+    
+    if (savedScrollPosition && isFromProjectDetail && savedScrollPosition > 0) {
+      // Use setTimeout to ensure DOM is fully rendered
+      setTimeout(() => {
+        window.scrollTo({
+          top: savedScrollPosition,
+          behavior: 'auto' // Use auto for instant restoration
+        });
+        // Clear the navigation state after restoring to prevent future issues
+        window.history.replaceState({}, '', location.pathname);
+      }, 100);
+    }
+  }, [getScrollPosition, location.state]);
 
   // Reset selected category if it no longer exists
   useEffect(() => {
@@ -29,6 +55,17 @@ export default function Portfolio() {
       setShowMore(false);
     }
   }, [categories, selectedCategory]);
+
+  // Clear scroll position when component unmounts (user navigates away normally)
+  useEffect(() => {
+    return () => {
+      // Only clear if we're not navigating to a project detail page
+      if (!window.location.pathname.startsWith('/project/')) {
+        // This runs when component unmounts and we're not going to project detail
+        // We'll keep the scroll position only for project navigation
+      }
+    };
+  }, []);
 
   // Filter projects by selected category
   const getFilteredProjects = () => {
@@ -42,14 +79,24 @@ export default function Portfolio() {
 
   const filteredProjects = getFilteredProjects();
   
-  // Limit items with show more functionality
-  const displayedProjects = !showMore ? filteredProjects.slice(0, 12) : filteredProjects;
-  const hasMoreItems = filteredProjects.length > 12;
+  // Responsive limit: 8 for mobile, 12 for desktop
+  const itemLimit = isMobile ? 8 : 12;
+  const displayedProjects = !showMore ? filteredProjects.slice(0, itemLimit) : filteredProjects;
+  const hasMoreItems = filteredProjects.length > itemLimit;
 
-  // Navigate to project detail page
-  const handleProjectClick = (projectId) => {
-    navigate(`/project/${projectId}`);
-  };
+  // Don't render anything if essential data is not available
+  if (!projects || !navigate) {
+    return (
+      <section id="portfolio" className="py-24 bg-white">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-brown-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading projects...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   // Handle category filter change
   const handleCategoryChange = (category) => {
@@ -58,7 +105,7 @@ export default function Portfolio() {
   };
 
   return (
-    <section id="portfolio" className="py-24 bg-white">
+    <section id="portfolio" className="py-24 bg-white" ref={portfolioSectionRef}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl lg:text-center">
           <motion.div
@@ -126,8 +173,26 @@ export default function Portfolio() {
                 animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 className="cursor-pointer group"
-                onClick={() => handleProjectClick(project.id)}
+                onClick={() => {
+                  try {
+                    console.log('Card clicked for project:', project.id);
+                    
+                    // Save scroll position
+                    const currentScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+                    if (saveScrollPosition) {
+                      saveScrollPosition('portfolio', currentScrollPosition);
+                    }
+                    
+                    // Navigate using React Router
+                    console.log('About to navigate to:', `/project/${project.id}`);
+                    navigate(`/project/${project.id}`);
+                    console.log('Navigate function called');
+                  } catch (error) {
+                    console.error('Navigation error:', error);
+                  }
+                }}
               >
+                {/* Remove Link wrapper and put content directly in motion.div */}
                 {/* Image Container */}
                 <div className="relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 mb-4">
                   <div className="relative w-full h-64 sm:h-72 lg:h-80">
@@ -190,6 +255,11 @@ export default function Portfolio() {
               <p className="text-gray-500 mt-3 text-sm">
                 Showing {displayedProjects.length} of {filteredProjects.length} projects
                 {selectedCategory !== 'all' && ` in ${formatCategoryName(selectedCategory)}`}
+                {isMobile && (
+                  <span className="block text-xs text-gray-400 mt-1">
+                    Mobile view: {itemLimit} projects per page
+                  </span>
+                )}
               </p>
             </motion.div>
           )}
@@ -203,7 +273,7 @@ export default function Portfolio() {
             >
               <div className="text-gray-400 mb-4">
                 <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012 2v2M7 7h10" />
                 </svg>
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">No projects found</h3>
@@ -219,4 +289,4 @@ export default function Portfolio() {
       </div>
     </section>
   );
-} 
+}

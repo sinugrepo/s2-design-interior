@@ -5,6 +5,7 @@ import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon, ArrowLeftIcon } from '@he
 import Navbar from './Navbar';
 import Footer from './Footer';
 import { useProjects } from '../contexts/ProjectsContext';
+import { useScroll } from '../contexts/ScrollContext';
 
 // Helper function to format category display
 const formatCategoryName = (category) => {
@@ -19,6 +20,9 @@ export default function ProjectDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { fetchProject } = useProjects();
+  const { getScrollPosition } = useScroll();
+  
+  console.log('ProjectDetail component rendering with ID:', id);
   
   const [project, setProject] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -27,9 +31,12 @@ export default function ProjectDetail() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
   useEffect(() => {
+    console.log('ProjectDetail useEffect running for ID:', id);
     const loadProject = async () => {
       try {
         setIsLoading(true);
+        setError(null);
+        setProject(null);
         const projectData = await fetchProject(id);
         setProject(projectData);
       } catch (err) {
@@ -43,6 +50,12 @@ export default function ProjectDetail() {
       loadProject();
     }
   }, [id, fetchProject]);
+
+  // Force scroll to top when component mounts to override browser scroll restoration
+  useEffect(() => {
+    // Force immediate scroll to top to override browser's scroll restoration
+    window.scrollTo(0, 0);
+  }, []); // Empty dependency array - only run on mount
 
   const openLightbox = (index) => {
     setCurrentImage(index);
@@ -69,6 +82,16 @@ export default function ProjectDetail() {
     if (e.key === 'ArrowRight') goToNext();
   };
 
+  // Handle back navigation with scroll restoration
+  const handleBackToPortfolio = () => {
+    navigate('/', { 
+      state: { 
+        scrollToPortfolio: true,
+        scrollPosition: getScrollPosition('portfolio') 
+      }
+    });
+  };
+
   if (isLoading) {
     return (
       <>
@@ -90,7 +113,7 @@ export default function ProjectDetail() {
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Project Not Found</h1>
             <p className="text-gray-600 mb-8">{error || 'The project you are looking for does not exist.'}</p>
             <button
-              onClick={() => navigate('/')}
+              onClick={handleBackToPortfolio}
               className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-brand-brown-600 hover:bg-brand-brown-700"
             >
               <ArrowLeftIcon className="w-5 h-5 mr-2" />
@@ -119,7 +142,7 @@ export default function ProjectDetail() {
             {/* Back Button */}
             <div className="flex justify-start mb-8">
               <button
-                onClick={() => navigate('/')}
+                onClick={handleBackToPortfolio}
                 className="inline-flex items-center px-4 py-2 text-sm font-medium text-brand-brown-600 hover:text-brand-brown-700 transition-colors"
               >
                 <ArrowLeftIcon className="w-4 h-4 mr-2" />
