@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -17,7 +17,7 @@ const formatCategoryName = (category) => {
 
 export default function Portfolio() {
   const { projects, categories } = useProjects();
-  const { saveScrollPosition, getScrollPosition } = useScroll();
+  const scrollContext = useScroll();
   const { isMobile } = useResponsive();
   const location = useLocation();
   const [showMore, setShowMore] = useState(false);
@@ -27,25 +27,53 @@ export default function Portfolio() {
   const portfolioSectionRef = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
-  // Restore scroll position on component mount
+  // Restore scroll position on component mount - simplified
   useEffect(() => {
-    const savedScrollPosition = getScrollPosition('portfolio');
-    
     // Only restore scroll position if we explicitly have location state indicating we came from project detail
     const isFromProjectDetail = location.state?.scrollToPortfolio === true;
     
-    if (savedScrollPosition && isFromProjectDetail && savedScrollPosition > 0) {
-      // Use setTimeout to ensure DOM is fully rendered
-      setTimeout(() => {
-        window.scrollTo({
-          top: savedScrollPosition,
-          behavior: 'auto' // Use auto for instant restoration
-        });
-        // Clear the navigation state after restoring to prevent future issues
-        window.history.replaceState({}, '', location.pathname);
-      }, 100);
+    if (isFromProjectDetail && location.state?.scrollPosition) {
+      const savedScrollPosition = location.state.scrollPosition;
+      console.log('Attempting to restore scroll position from location state:', savedScrollPosition);
+      
+      // Simple timeout with direct scroll restoration
+      const timeout = setTimeout(() => {
+        if (savedScrollPosition > 0) {
+          // Save to context for future use
+          scrollContext.saveScrollPosition('portfolio', savedScrollPosition);
+          
+          // Direct scroll restoration with multiple attempts for mobile
+          let attempts = 0;
+          const maxAttempts = 3;
+          
+          const tryRestore = () => {
+            attempts++;
+            window.scrollTo({
+              top: savedScrollPosition,
+              behavior: 'auto'
+            });
+            
+            // Check if we need to try again
+            setTimeout(() => {
+              const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+              if (Math.abs(currentScroll - savedScrollPosition) > 10 && attempts < maxAttempts) {
+                console.log(`Scroll restoration attempt ${attempts} - trying again...`);
+                tryRestore();
+              } else {
+                console.log(`Scroll restoration completed after ${attempts} attempts`);
+                // Clear the navigation state
+                window.history.replaceState({}, '', location.pathname);
+              }
+            }, 50);
+          };
+          
+          tryRestore();
+        }
+      }, 150);
+
+      return () => clearTimeout(timeout);
     }
-  }, [getScrollPosition, location.state]);
+  }, []); // Empty dependency array to run only once on mount
 
   // Reset selected category if it no longer exists
   useEffect(() => {
@@ -56,26 +84,82 @@ export default function Portfolio() {
     }
   }, [categories, selectedCategory]);
 
-  // Clear scroll position when component unmounts (user navigates away normally)
-  useEffect(() => {
-    return () => {
-      // Only clear if we're not navigating to a project detail page
-      if (!window.location.pathname.startsWith('/project/')) {
-        // This runs when component unmounts and we're not going to project detail
-        // We'll keep the scroll position only for project navigation
+  // Enhanced navigation handler for better mobile support
+  const handleProjectNavigation = useCallback((project, eventType = 'click') => {
+    try {
+      console.log(`Card ${eventType} for project:`, project.id);
+      console.log('Navigate function available:', !!navigate);
+      console.log('Project object:', project);
+      
+      // Save scroll position
+      const currentScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+      scrollContext.saveScrollPosition('portfolio', currentScrollPosition);
+      console.log('Saved scroll position:', currentScrollPosition);
+      
+      // Navigate using React Router
+      const targetPath = `/project/${project.id}`;
+      console.log('About to navigate to:', targetPath);
+      
+      // Try navigation with error handling
+      try {
+        navigate(targetPath);
+        console.log('Navigate function called successfully');
+        
+        // Add a small delay and check if navigation happened
+        setTimeout(() => {
+          const currentPath = window.location.pathname;
+          console.log('Current path after navigation attempt:', currentPath);
+          if (currentPath !== targetPath) {
+            console.warn('Navigation may have failed, current path:', currentPath);
+            // Fallback: try window.location
+            console.log('Trying fallback navigation...');
+            window.location.href = targetPath;
+          }
+        }, 100);
+        
+      } catch (navError) {
+        console.error('Navigation function error:', navError);
+        // Fallback to window.location
+        window.location.href = targetPath;
       }
-    };
+    } catch (error) {
+      console.error('Navigation error:', error);
+    }
+  }, [navigate, scrollContext]);
+
+  // Separate handlers for different event types
+  const handleClick = useCallback((project) => {
+    handleProjectNavigation(project, 'click');
+  }, [handleProjectNavigation]);
+
+  const handleTouch = useCallback((project, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleProjectNavigation(project, 'touch');
+  }, [handleProjectNavigation]);
+
+  const handleKeyDown = useCallback((project, e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleProjectNavigation(project, 'keyboard');
+    }
+  }, [handleProjectNavigation]);
+
+  // Handle category filter change
+  const handleCategoryChange = useCallback((category) => {
+    setSelectedCategory(category);
+    setShowMore(false); // Reset show more when changing category
   }, []);
 
   // Filter projects by selected category
-  const getFilteredProjects = () => {
+  const getFilteredProjects = useCallback(() => {
     if (selectedCategory === 'all') {
-      return projects;
+      return projects || [];
     }
-    return projects.filter(project => 
+    return (projects || []).filter(project => 
       project.category && project.category.toLowerCase() === selectedCategory.toLowerCase()
     );
-  };
+  }, [projects, selectedCategory]);
 
   const filteredProjects = getFilteredProjects();
   
@@ -97,12 +181,6 @@ export default function Portfolio() {
       </section>
     );
   }
-
-  // Handle category filter change
-  const handleCategoryChange = (category) => {
-    setSelectedCategory(category);
-    setShowMore(false); // Reset show more when changing category
-  };
 
   return (
     <section id="portfolio" className="py-24 bg-white" ref={portfolioSectionRef}>
@@ -173,26 +251,13 @@ export default function Portfolio() {
                 animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 className="cursor-pointer group"
-                onClick={() => {
-                  try {
-                    console.log('Card clicked for project:', project.id);
-                    
-                    // Save scroll position
-                    const currentScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
-                    if (saveScrollPosition) {
-                      saveScrollPosition('portfolio', currentScrollPosition);
-                    }
-                    
-                    // Navigate using React Router
-                    console.log('About to navigate to:', `/project/${project.id}`);
-                    navigate(`/project/${project.id}`);
-                    console.log('Navigate function called');
-                  } catch (error) {
-                    console.error('Navigation error:', error);
-                  }
-                }}
+                onClick={() => handleClick(project)}
+                onTouchEnd={(e) => handleTouch(project, e)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => handleKeyDown(project, e)}
+                aria-label={`View details for ${project.title}`}
               >
-                {/* Remove Link wrapper and put content directly in motion.div */}
                 {/* Image Container */}
                 <div className="relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 mb-4">
                   <div className="relative w-full h-64 sm:h-72 lg:h-80">
@@ -200,6 +265,7 @@ export default function Portfolio() {
                       src={project.thumbnail_image}
                       alt={project.title}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      loading="lazy"
                     />
                     {/* Subtle overlay on hover */}
                     <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">

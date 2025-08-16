@@ -23,38 +23,57 @@ import AdminTestimonials from './components/AdminTestimonials';
 import NotFound from './components/NotFound';
 import { useEffect } from 'react';
 
+// Route debugging component
+function RouteDebugger() {
+  const location = useLocation();
+  
+  useEffect(() => {
+    console.log('Route changed to:', location.pathname);
+    console.log('Location state:', location.state);
+  }, [location]);
+  
+  return null;
+}
+
 // Main homepage component
 function HomePage() {
   const location = useLocation();
-  const { saveScrollPosition, clearScrollPosition } = useScroll();
+  const scrollContext = useScroll();
 
   useEffect(() => {
+    console.log('HomePage component mounted/updated');
+    
     // Check if this is a page refresh/reload
-    const isPageRefresh = window.performance.getEntriesByType('navigation')[0]?.type === 'reload';
+    const navigation = window.performance.getEntriesByType('navigation')[0];
+    const isPageRefresh = navigation?.type === 'reload';
     
     if (isPageRefresh) {
       // Clear all scroll positions on page refresh
-      clearScrollPosition('portfolio');
+      scrollContext.clearScrollPosition('portfolio');
       return;
     }
 
     // Check if we're coming back from project detail with scroll position
     if (location.state?.scrollToPortfolio && location.state?.scrollPosition) {
-      setTimeout(() => {
-        // First scroll to portfolio section
+      console.log('HomePage: Received scroll restoration request for position:', location.state.scrollPosition);
+      
+      // Simple restoration without complex dependencies
+      const timeout = setTimeout(() => {
         const portfolioElement = document.querySelector('#portfolio');
         if (portfolioElement) {
           // Save the position for Portfolio component to restore
-          saveScrollPosition('portfolio', location.state.scrollPosition);
-          // Scroll to the saved position
+          scrollContext.saveScrollPosition('portfolio', location.state.scrollPosition);
+          // Direct scroll restoration
           window.scrollTo({
             top: location.state.scrollPosition,
             behavior: 'auto'
           });
         }
-      }, 100);
+      }, 200);
+
+      return () => clearTimeout(timeout);
     }
-  }, [location.state, saveScrollPosition, clearScrollPosition]);
+  }, []); // Empty dependency array to run only once on mount
 
   return (
     <>
@@ -78,6 +97,7 @@ function App() {
           <TestimonialsProvider>
             <ScrollProvider>
               <Router>
+                <RouteDebugger />
                 <div className="min-h-screen bg-white">
                   <Routes>
                     {/* Public Routes */}

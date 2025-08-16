@@ -95,7 +95,7 @@ export default function ProjectDetail() {
   if (isLoading) {
     return (
       <>
-        <Navbar />
+        {/* <Navbar /> */}
         <div className="min-h-screen flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-brown-600"></div>
         </div>
@@ -107,7 +107,7 @@ export default function ProjectDetail() {
   if (error || !project) {
     return (
       <>
-        <Navbar />
+        {/* <Navbar /> */}
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Project Not Found</h1>
@@ -128,7 +128,7 @@ export default function ProjectDetail() {
 
   return (
     <>
-      <Navbar />
+      {/* <Navbar /> */}
       
       {/* Hero Section */}
       <section className="relative py-24 bg-gradient-to-br from-brand-beige-50 to-brand-brown-50">

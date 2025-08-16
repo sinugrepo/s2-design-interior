@@ -8,7 +8,22 @@
     scroll-behavior: smooth;
   }
   
+  /* Override smooth scroll when restoring scroll position */
+  html.scroll-restoring {
+    scroll-behavior: auto !important;
+  }
+  
   body {
     font-family: 'Inter', sans-serif;
+  }
+  
+  /* Improve touch scrolling on mobile */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Ensure proper touch events on mobile */
+  .cursor-pointer {
+    touch-action: manipulation;
   }
 }
