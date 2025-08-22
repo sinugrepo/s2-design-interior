@@ -26,4 +26,35 @@
   .cursor-pointer {
     touch-action: manipulation;
   }
+  
+  /* Prevent hover effects on touch devices */
+  @media (hover: none) and (pointer: coarse) {
+    .group:hover .group-hover\:scale-110 {
+      transform: scale(1) !important;
+    }
+    
+    .group:hover .group-hover\:bg-opacity-20 {
+      background-opacity: 0 !important;
+    }
+    
+    .group:hover .group-hover\:opacity-100 {
+      opacity: 0 !important;
+    }
+    
+    .group:hover .group-hover\:text-brand-brown-600 {
+      color: inherit !important;
+    }
+    
+    /* Disable all hover transitions on touch devices */
+    .group:hover * {
+      transition: none !important;
+    }
+  }
+  
+  /* Only apply hover effects on devices that can actually hover */
+  @media (hover: hover) and (pointer: fine) {
+    .group:hover .hover-effect {
+      /* This will only apply on non-touch devices */
+    }
+  }
 }

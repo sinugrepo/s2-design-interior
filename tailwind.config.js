@@ -10,7 +10,21 @@ export default {
         sans: ['Inter', 'sans-serif'],
       },
       colors: {
-        'brand-brown': {
+        // Enhanced gray-based palette with better contrast and richness
+        'brand-gray': {
+          50: '#f8f9fa',   // Crisp white background
+          100: '#e9ecef',  // Very light gray with more presence
+          200: '#dee2e6',  // Light border gray
+          300: '#ced4da',  // Medium light gray
+          400: '#adb5bd',  // Balanced medium gray
+          500: '#6c757d',  // Strong medium gray - main brand color
+          600: '#495057',  // Rich dark gray
+          700: '#343a40',  // Deep charcoal for text
+          800: '#212529',  // Near black for high contrast
+          900: '#0d1117',  // Rich black for footer and strong elements
+        },
+        // Keeping some warm accents for interior design feel
+        'accent-warm': {
           50: '#faf8f5',
           100: '#f4f0e8',
           200: '#e8dcc8',
@@ -21,18 +35,6 @@ export default {
           700: '#876543',
           800: '#6f533a',
           900: '#5a4530',
-        },
-        'brand-beige': {
-          50: '#fefcf9',
-          100: '#fdf8f0',
-          200: '#faf0de',
-          300: '#f5e4c8',
-          400: '#eed5ab',
-          500: '#e5c288',
-          600: '#d9ab6a',
-          700: '#c8924d',
-          800: '#a67640',
-          900: '#856137',
         },
       },
     },

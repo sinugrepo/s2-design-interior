@@ -22,7 +22,7 @@ export default function NotFound() {
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-8xl md:text-9xl font-bold text-brand-brown-600 mb-6"
+            className="text-8xl md:text-9xl font-bold text-brand-gray-600 mb-6"
           >
             404
           </motion.div>
@@ -34,20 +34,10 @@ export default function NotFound() {
             transition={{ duration: 0.5, delay: 0.4 }}
             className="mb-8"
           >
-            <div className="w-20 h-20 mx-auto bg-brand-brown-100 rounded-full flex items-center justify-center">
-              <svg 
-                className="w-10 h-10 text-brand-brown-600" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={1.5} 
-                  d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.471.901-6.064 2.379l1.414 1.414C8.9 17.744 10.399 17 12 17s3.1.744 4.65 1.793l1.414-1.414A7.962 7.962 0 0112 15c-2.34 0-4.471-.901-6.064-2.379L4.522 14.036A9.954 9.954 0 0112 13a9.954 9.954 0 017.478 1.036l-1.414 1.414C16.9 14.256 14.601 14 12 14s-4.9.256-6.064 1.45z" 
-                />
-              </svg>
+            <div className="w-20 h-20 mx-auto bg-brand-gray-200 rounded-full flex items-center justify-center">
+              <HomeIcon 
+                className="w-10 h-10 text-brand-gray-600"
+              />
             </div>
           </motion.div>
 
@@ -56,7 +46,7 @@ export default function NotFound() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.6 }}
-            className="text-2xl md:text-3xl font-bold text-gray-900 mb-4"
+            className="text-2xl md:text-3xl font-bold text-brand-gray-900 mb-4"
           >
             Mohon Maaf, Halaman Tidak Ditemukan
           </motion.h1>
@@ -80,8 +70,8 @@ export default function NotFound() {
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
             <button
-              onClick={handleGoHome}
-              className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-full text-white bg-brand-brown-600 hover:bg-brand-brown-700 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
+              onClick={() => navigate('/')}
+              className="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-full text-white bg-brand-gray-600 hover:bg-brand-gray-700 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
             >
               <HomeIcon className="w-5 h-5 mr-2" />
               Kembali ke Beranda
@@ -118,7 +108,7 @@ export default function NotFound() {
                     repeatType: 'reverse',
                     repeatDelay: 2
                   }}
-                  className="w-2 h-2 bg-brand-brown-400 rounded-full"
+                  className="w-2 h-2 bg-brand-gray-400 rounded-full"
                 />
               ))}
             </div>

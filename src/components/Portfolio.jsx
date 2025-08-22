@@ -27,6 +27,18 @@ export default function Portfolio() {
   const portfolioSectionRef = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
+  // Touch tracking for scroll detection
+  const touchStateRef = useRef({
+    startY: 0,
+    startX: 0,
+    startTime: 0,
+    isScrolling: false,
+    moved: false
+  });
+
+  // State for mobile tap feedback
+  const [tappedCard, setTappedCard] = useState(null);
+
   // Restore scroll position on component mount - simplified
   useEffect(() => {
     // Only restore scroll position if we explicitly have location state indicating we came from project detail
@@ -127,16 +139,86 @@ export default function Portfolio() {
     }
   }, [navigate, scrollContext]);
 
-  // Separate handlers for different event types
-  const handleClick = useCallback((project) => {
-    handleProjectNavigation(project, 'click');
-  }, [handleProjectNavigation]);
+  // Handle touch start - track initial touch position
+  const handleTouchStart = useCallback((project, e) => {
+    const touch = e.touches[0];
+    touchStateRef.current = {
+      startY: touch.clientY,
+      startX: touch.clientX,
+      startTime: Date.now(),
+      isScrolling: false,
+      moved: false
+    };
+    
+    // Provide visual feedback for mobile tap
+    if (isMobile) {
+      setTappedCard(project.id);
+    }
+  }, [isMobile]);
 
-  const handleTouch = useCallback((project, e) => {
+  // Handle touch move - detect if user is scrolling
+  const handleTouchMove = useCallback((e) => {
+    if (!touchStateRef.current.startY) return;
+    
+    const touch = e.touches[0];
+    const deltaY = Math.abs(touch.clientY - touchStateRef.current.startY);
+    const deltaX = Math.abs(touch.clientX - touchStateRef.current.startX);
+    
+    // If moved more than 10px in any direction, consider it scrolling/moving
+    if (deltaY > 10 || deltaX > 10) {
+      touchStateRef.current.moved = true;
+      touchStateRef.current.isScrolling = deltaY > deltaX; // Vertical movement is scrolling
+      
+      // Remove tap feedback if user starts scrolling
+      if (isMobile && touchStateRef.current.isScrolling) {
+        setTappedCard(null);
+      }
+    }
+  }, [isMobile]);
+
+  // Handle touch end - only navigate if it was a tap, not a scroll
+  const handleTouchEnd = useCallback((project, e) => {
     e.preventDefault();
     e.stopPropagation();
-    handleProjectNavigation(project, 'touch');
+    
+    const touchDuration = Date.now() - touchStateRef.current.startTime;
+    const { moved, isScrolling } = touchStateRef.current;
+    
+    // Clear tap feedback
+    setTappedCard(null);
+    
+    // Only navigate if:
+    // 1. Touch duration is short (less than 300ms - typical tap)
+    // 2. User didn't move much (not scrolling)
+    // 3. If they moved, it wasn't primarily scrolling
+    if (touchDuration < 300 && (!moved || !isScrolling)) {
+      console.log('Valid tap detected, navigating...');
+      // Add small delay to show tap feedback before navigation
+      setTimeout(() => {
+        handleProjectNavigation(project, 'touch');
+      }, 100);
+    } else {
+      console.log('Scroll gesture detected, preventing navigation');
+    }
+    
+    // Reset touch state
+    touchStateRef.current = {
+      startY: 0,
+      startX: 0,
+      startTime: 0,
+      isScrolling: false,
+      moved: false
+    };
   }, [handleProjectNavigation]);
+
+  // Separate handlers for different event types
+  const handleClick = useCallback((project, e) => {
+    // For non-mobile devices, use normal click behavior
+    if (!isMobile) {
+      handleProjectNavigation(project, 'click');
+    }
+    // For mobile, we rely on touch events instead
+  }, [handleProjectNavigation, isMobile]);
 
   const handleKeyDown = useCallback((project, e) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -173,9 +255,8 @@ export default function Portfolio() {
     return (
       <section id="portfolio" className="py-24 bg-white">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-brown-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading projects...</p>
+          <div className="flex justify-center items-center h-64 mt-16">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-gray-600 mx-auto"></div>
           </div>
         </div>
       </section>
@@ -192,11 +273,11 @@ export default function Portfolio() {
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-base font-semibold leading-7 text-brand-brown-600">Our Projects</h2>
-            <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            <h2 className="text-base font-semibold leading-7 text-brand-gray-600">Our Projects</h2>
+            <p className="mt-2 text-3xl font-bold tracking-tight text-brand-gray-900 sm:text-4xl">
               200+ Projects. But Our Goal Is Always the Same: Making You Feel at Home.
             </p>
-            <p className="mt-6 text-lg leading-8 text-gray-600">
+            <p className="mt-6 text-lg leading-8 text-brand-gray-700">
               Every project we take on tells a different story — from cozy residential homes to dynamic office spaces, from elegant apartments to vibrant public spaces. We design environments that work for your daily life, not just look good in photos. Browse our portfolio and discover how we've helped others transform their spaces — maybe yours is next.
             </p>
           </motion.div>
@@ -209,13 +290,13 @@ export default function Portfolio() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="mt-12"
         >
-          <div className="flex flex-wrap justify-center gap-3 mb-8">
+          <div className="flex flex-wrap justify-center gap-4">
             <button
               onClick={() => handleCategoryChange('all')}
               className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                 selectedCategory === 'all'
-                  ? 'bg-brand-brown-600 text-white shadow-lg'
-                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-brand-brown-50 hover:border-brand-brown-300'
+                  ? 'bg-brand-gray-600 text-white shadow-lg'
+                  : 'bg-white text-brand-gray-700 border border-brand-gray-300 hover:bg-brand-gray-100 hover:border-brand-gray-400'
               }`}
             >
               All Projects
@@ -226,8 +307,8 @@ export default function Portfolio() {
                 onClick={() => handleCategoryChange(category)}
                 className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                   selectedCategory === category
-                    ? 'bg-brand-brown-600 text-white shadow-lg'
-                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-brand-brown-50 hover:border-brand-brown-300'
+                    ? 'bg-brand-gray-600 text-white shadow-lg'
+                    : 'bg-white text-brand-gray-700 border border-brand-gray-300 hover:bg-brand-gray-100 hover:border-brand-gray-400'
                 }`}
               >
                 {formatCategoryName(category)}
@@ -250,9 +331,13 @@ export default function Portfolio() {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="cursor-pointer group"
-                onClick={() => handleClick(project)}
-                onTouchEnd={(e) => handleTouch(project, e)}
+                className={`cursor-pointer group ${
+                  tappedCard === project.id ? 'scale-95 opacity-75' : ''
+                } transition-all duration-150`}
+                onClick={(e) => handleClick(project, e)}
+                onTouchStart={(e) => handleTouchStart(project, e)}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={(e) => handleTouchEnd(project, e)}
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => handleKeyDown(project, e)}
@@ -283,14 +368,14 @@ export default function Portfolio() {
 
                 {/* Project Information Below Image */}
                 <div className="px-1">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-brand-brown-600 transition-colors duration-300">
+                  <h3 className="text-lg font-semibold text-brand-gray-900 mb-2 group-hover:text-brand-gray-600 transition-colors duration-300">
                     {project.title}
                   </h3>
                   <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-brand-brown-100 text-brand-brown-800">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-brand-gray-200 text-brand-gray-800">
                       {formatCategoryName(project.category)}
                     </span>
-                    <div className="text-brand-brown-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="text-brand-gray-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
@@ -311,18 +396,18 @@ export default function Portfolio() {
             >
               <button
                 onClick={() => setShowMore(true)}
-                className="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-full text-white bg-brand-brown-600 hover:bg-brand-brown-700 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
+                className="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-full text-white bg-brand-gray-600 hover:bg-brand-gray-700 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
               >
                 Show More Projects
                 <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              <p className="text-gray-500 mt-3 text-sm">
+              <p className="text-brand-gray-700 mt-3 text-sm">
                 Showing {displayedProjects.length} of {filteredProjects.length} projects
                 {selectedCategory !== 'all' && ` in ${formatCategoryName(selectedCategory)}`}
                 {isMobile && (
-                  <span className="block text-xs text-gray-400 mt-1">
+                  <span className="block text-xs text-brand-gray-500 mt-1">
                     Mobile view: {itemLimit} projects per page
                   </span>
                 )}
@@ -337,13 +422,13 @@ export default function Portfolio() {
               animate={{ opacity: 1 }}
               className="text-center py-16"
             >
-              <div className="text-gray-400 mb-4">
+              <div className="text-brand-gray-400 mb-4">
                 <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012 2v2M7 7h10" />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No projects found</h3>
-              <p className="text-gray-500">
+              <h3 className="text-lg font-medium text-brand-gray-900 mb-2">No projects found</h3>
+              <p className="text-brand-gray-700">
                 {selectedCategory === 'all' 
                   ? "We're working on adding more amazing projects. Check back soon!" 
                   : `No projects found in ${formatCategoryName(selectedCategory)} category. Try selecting a different category.`

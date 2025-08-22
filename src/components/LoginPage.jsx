@@ -29,8 +29,8 @@ export default function LoginPage() {
   // Show loading spinner while checking auth
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-beige-50 to-brand-brown-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-brown-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-gray-100 to-brand-gray-200">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-gray-600"></div>
       </div>
     );
   }
@@ -58,7 +58,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-beige-50 to-brand-brown-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-gray-100 to-brand-gray-200 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <motion.div
@@ -67,13 +67,13 @@ export default function LoginPage() {
           transition={{ duration: 0.6 }}
           className="text-center"
         >
-          <div className="mx-auto h-16 w-16 bg-brand-brown-600 rounded-full flex items-center justify-center">
+          <div className="mx-auto h-16 w-16 bg-brand-gray-600 rounded-full flex items-center justify-center">
             <LockClosedIcon className="h-8 w-8 text-white" />
           </div>
-          <h2 className="mt-6 text-3xl font-bold text-gray-900">
+          <h2 className="mt-6 text-3xl font-bold text-brand-gray-900">
             Admin Login
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-sm text-brand-gray-700">
             Sign in to access the admin panel
           </p>
         </motion.div>
@@ -155,7 +155,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-brand-brown-600 hover:bg-brand-brown-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-brown-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-brand-gray-600 hover:bg-brand-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isSubmitting ? (
                 <div className="flex items-center">
@@ -166,34 +166,28 @@ export default function LoginPage() {
                 'Sign In'
               )}
             </button>
+
+            {/* Forgot Password Link */}
+            <div className="text-center">
+              <Link
+                to="/admin/forgot-password"
+                className="text-sm text-brand-gray-600 hover:text-brand-gray-700 transition-colors"
+              >
+                Forgot your password?
+              </Link>
+            </div>
           </form>
 
           {/* Back to Site Link */}
           <div className="mt-6 text-center">
             <Link
               to="/"
-              className="inline-flex items-center text-sm text-brand-brown-600 hover:text-brand-brown-700 transition-colors"
+              className="inline-flex items-center text-sm text-brand-gray-600 hover:text-brand-gray-700 transition-colors"
             >
               <HomeIcon className="h-4 w-4 mr-2" />
               Back to Website
             </Link>
           </div>
-        </motion.div>
-
-        {/* Demo Credentials */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center"
-        >
-          <p className="text-sm text-blue-800 font-medium mb-2">Demo Credentials:</p>
-          <p className="text-xs text-blue-600">
-            Username: <span className="font-mono bg-blue-100 px-2 py-1 rounded">admin</span>
-          </p>
-          <p className="text-xs text-blue-600">
-            Password: <span className="font-mono bg-blue-100 px-2 py-1 rounded">admin123</span>
-          </p>
         </motion.div>
       </div>
     </div>

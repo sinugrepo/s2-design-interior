@@ -100,7 +100,7 @@ export default function AdminDashboard() {
             <div className="mt-4">
               <Link
                 to={stat.link}
-                className="text-sm text-brand-brown-600 hover:text-brand-brown-700 font-medium"
+                className="text-sm text-brand-gray-600 hover:text-brand-gray-700 font-medium"
               >
                 {stat.action} →
               </Link>

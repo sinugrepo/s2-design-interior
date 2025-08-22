@@ -1,4 +1,5 @@
 import { Facebook, Instagram, Twitter, Linkedin } from 'lucide-react';
+import logo from '../assets/whitelogo.png';
 
 const navigation = [
   { name: 'About', href: '#about' },
@@ -34,43 +35,58 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-gray-900">
-      <div className="mx-auto max-w-7xl px-6 py-12 md:flex md:items-center md:justify-between lg:px-8">
-        <div className="flex justify-center space-x-6 md:order-2">
-          {socialLinks.map((item) => (
-            <a
-              key={item.name}
-              href={item.href}
-              className="text-gray-400 hover:text-brand-beige-300 transition-colors duration-200"
-            >
-              <span className="sr-only">{item.name}</span>
-              <item.icon className="h-6 w-6" aria-hidden="true" />
-            </a>
-          ))}
-        </div>
-        <div className="mt-8 md:order-1 md:mt-0">
-          <div className="flex flex-col items-center md:items-start">
-            <button
-              onClick={scrollToTop}
-              className="mb-4 text-2xl font-bold text-white hover:text-brand-beige-300 transition-colors duration-200"
-            >
-              S2 Design <span className="text-brand-brown-400">Interior</span>
-            </button>
-            <nav className="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-2 mb-4">
-              {navigation.map((item) => (
-                <button
-                  key={item.name}
-                  onClick={() => scrollToSection(item.href)}
-                  className="text-sm text-gray-400 hover:text-brand-beige-300 transition-colors duration-200"
-                >
-                  {item.name}
-                </button>
-              ))}
-            </nav>
-            <p className="text-center text-xs leading-5 text-gray-500 md:text-left">
-              &copy; {new Date().getFullYear()} S2 Design Interior. All rights reserved.
-            </p>
+    <footer className="bg-brand-gray-900">
+      <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
+        <div className="flex flex-col items-center">
+          {/* Logo */}
+          <button
+            onClick={scrollToTop}
+            className="mb-6 flex items-center text-white hover:text-brand-gray-200 transition-colors duration-200"
+          >
+            <img 
+              src={logo} 
+              alt="S2 Design Interior" 
+              className="h-12 w-auto mr-3"
+            />
+            {/* <div>
+              <span className="text-xl font-bold">S2 Design</span>
+              <span className="text-brand-gray-400 ml-1">Interior</span>
+            </div> */}
+          </button>
+
+          {/* Social Links */}
+          <div className="flex justify-center space-x-6 mb-6">
+            {socialLinks.map((item) => (
+              <a
+                key={item.name}
+                href={item.href}
+                className="text-white hover:text-brand-gray-300 transition-colors duration-200"
+              >
+                <span className="sr-only">{item.name}</span>
+                <item.icon className="h-6 w-6" aria-hidden="true" />
+              </a>
+            ))}
           </div>
+
+          {/* Navigation */}
+          <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2 mb-6">
+            {navigation.map((item) => (
+              <button
+                key={item.name}
+                onClick={() => scrollToSection(item.href)}
+                className="text-sm text-white hover:text-brand-gray-300 transition-colors duration-200"
+              >
+                {item.name}
+              </button>
+            ))}
+          </nav>
+          
+          
+          
+          {/* Copyright */}
+          <p className="text-center text-xs leading-5 text-brand-gray-300">
+            &copy; {new Date().getFullYear()} S2 Design Interior. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>

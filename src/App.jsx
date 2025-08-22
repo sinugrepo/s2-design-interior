@@ -14,6 +14,7 @@ import Contact from './components/Contact';
 import Footer from './components/Footer';
 import ProjectDetail from './components/ProjectDetail';
 import LoginPage from './components/LoginPage';
+import ForgotPasswordPage from './components/ForgotPasswordPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminLayout from './components/AdminLayout';
 import AdminDashboard from './components/AdminDashboard';
@@ -98,12 +99,14 @@ function App() {
             <ScrollProvider>
               <Router>
                 <RouteDebugger />
-                <div className="min-h-screen bg-white">
+                <div className="min-h-screen bg-brand-gray-50">
                   <Routes>
                     {/* Public Routes */}
                     <Route path="/" element={<HomePage />} />
                     <Route path="/project/:id" element={<ProjectDetail />} />
                     <Route path="/login" element={<LoginPage />} />
+                    <Route path="/admin/login" element={<LoginPage />} />
+                    <Route path="/admin/forgot-password" element={<ForgotPasswordPage />} />
                     
                     {/* Protected Admin Routes */}
                     <Route path="/admin" element={

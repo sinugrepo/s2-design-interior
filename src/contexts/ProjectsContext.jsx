@@ -10,7 +10,7 @@ export const useProjects = () => {
   return context;
 };
 
-const API_BASE_URL = 'https://backend.sinug.my.id/api';
+const API_BASE_URL = 'http://localhost:3001/api';
 
 export const ProjectsProvider = ({ children }) => {
   const [projects, setProjects] = useState([]);

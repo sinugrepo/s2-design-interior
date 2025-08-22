@@ -49,7 +49,7 @@ export default function AdminLayout() {
           className="fixed inset-y-0 left-0 flex w-64 flex-col bg-white shadow-xl"
         >
           <div className="flex h-16 items-center justify-between px-4 border-b border-gray-200">
-            <h1 className="text-xl font-bold text-brand-brown-600">S2 Admin</h1>
+            <h1 className="text-xl font-bold text-brand-gray-600">S2 Admin</h1>
             <button
               type="button"
               className="text-gray-400 hover:text-gray-600"
@@ -67,7 +67,7 @@ export default function AdminLayout() {
                   to={item.href}
                   className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                     isActive
-                      ? 'bg-brand-brown-100 text-brand-brown-700'
+                      ? 'bg-brand-gray-200 text-brand-gray-800'
                       : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                   }`}
                   onClick={() => setSidebarOpen(false)}
@@ -86,7 +86,7 @@ export default function AdminLayout() {
         <div className="flex flex-col flex-grow bg-white border-r border-gray-200 shadow-sm">
           {/* Logo */}
           <div className="flex h-16 items-center px-6 border-b border-gray-200">
-            <h1 className="text-xl font-bold text-brand-brown-600">S2 Admin Panel</h1>
+            <h1 className="text-xl font-bold text-brand-gray-600">S2 Admin Panel</h1>
           </div>
 
           {/* Navigation */}
@@ -99,7 +99,7 @@ export default function AdminLayout() {
                   to={item.href}
                   className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                     isActive
-                      ? 'bg-brand-brown-100 text-brand-brown-700 border border-brand-brown-200'
+                      ? 'bg-brand-gray-200 text-brand-gray-800 border border-brand-gray-300'
                       : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                   }`}
                 >

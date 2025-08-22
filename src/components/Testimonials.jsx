@@ -84,7 +84,7 @@ export default function Testimonials() {
   ]);
 
   return (
-    <section id="testimonials" className="py-24 bg-brand-beige-50">
+    <section id="testimonials" className="py-24 bg-white">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl lg:text-center">
           <motion.div
@@ -93,11 +93,11 @@ export default function Testimonials() {
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-base font-semibold leading-7 text-brand-brown-600">Testimonials</h2>
-            <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            <h2 className="text-base font-semibold leading-7 text-brand-gray-600">Testimonials</h2>
+            <p className="mt-2 text-3xl font-bold tracking-tight text-brand-gray-900 sm:text-4xl">
               What Our Clients Say
             </p>
-            <p className="mt-6 text-lg leading-8 text-gray-600">
+            <p className="mt-6 text-lg leading-8 text-brand-gray-700">
               Don't just take our word for it. Here's what our satisfied clients have to say about our work.
             </p>
           </motion.div>
@@ -105,11 +105,11 @@ export default function Testimonials() {
         
         {isLoading ? (
           <div className="flex justify-center items-center h-64 mt-16">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-brown-600"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-gray-600"></div>
           </div>
         ) : error ? (
           <div className="mt-16 text-center">
-            <p className="text-gray-500">Unable to load testimonials at the moment.</p>
+            <p className="text-brand-gray-700">Unable to load testimonials at the moment.</p>
           </div>
         ) : testimonials && testimonials.length > 0 ? (
           <motion.div
@@ -121,7 +121,7 @@ export default function Testimonials() {
             <div ref={sliderRef} className="keen-slider">
               {testimonials.map((testimonial) => (
                 <div key={testimonial.id} className="keen-slider__slide">
-                  <div className="bg-white p-8 rounded-2xl shadow-sm h-full flex flex-col min-h-[280px]">
+                  <div className="bg-brand-gray-50 p-8 rounded-2xl shadow-sm h-full flex flex-col min-h-[280px] border border-brand-gray-200">
                     {/* Stars Rating - Fixed at top */}
                     <div className="flex items-center mb-4">
                       {[...Array(testimonial.rating || 5)].map((_, i) => (
@@ -130,7 +130,7 @@ export default function Testimonials() {
                     </div>
                     
                     {/* Quote - Takes available space */}
-                    <blockquote className="text-gray-600 leading-relaxed flex-grow mb-6">
+                    <blockquote className="text-brand-gray-700 leading-relaxed flex-grow mb-6">
                       "{testimonial.quote}"
                     </blockquote>
                     
@@ -145,7 +145,7 @@ export default function Testimonials() {
                         }}
                       />
                       <div className="ml-4">
-                        <div className="font-semibold text-gray-900">{testimonial.name}</div>
+                        <div className="font-semibold text-brand-gray-900">{testimonial.name}</div>
                       </div>
                     </div>
                   </div>
@@ -155,7 +155,7 @@ export default function Testimonials() {
           </motion.div>
         ) : (
           <div className="mt-16 text-center">
-            <p className="text-gray-500">No testimonials available yet.</p>
+            <p className="text-brand-gray-700">No testimonials available yet.</p>
           </div>
         )}
       </div>
