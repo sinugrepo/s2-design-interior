@@ -11,12 +11,17 @@ import {
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import { useTestimonials } from '../contexts/TestimonialsContext';
 import { useModal } from '../contexts/ModalContext';
+import Pagination from './Pagination';
 
 export default function AdminTestimonials() {
   const { testimonials, isLoading, error, addTestimonial, updateTestimonial, deleteTestimonial } = useTestimonials();
   const { showError, showConfirm, showSuccess } = useModal();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTestimonial, setEditingTestimonial] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(9); // 3x3 grid
+  const [selectedTestimonials, setSelectedTestimonials] = useState(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     quote: '',
@@ -107,6 +112,70 @@ export default function AdminTestimonials() {
     );
   };
 
+  const handleSelectTestimonial = (testimonialId) => {
+    setSelectedTestimonials(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(testimonialId)) {
+        newSet.delete(testimonialId);
+      } else {
+        newSet.add(testimonialId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedTestimonials.size === paginatedTestimonials.length) {
+      setSelectedTestimonials(new Set());
+    } else {
+      setSelectedTestimonials(new Set(paginatedTestimonials.map(t => t.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    const selectedTestimonialsList = paginatedTestimonials.filter(t => selectedTestimonials.has(t.id));
+    const testimonialNames = selectedTestimonialsList.map(t => t.name).join(', ');
+    
+    showConfirm(
+      'Hapus Testimoni Terpilih',
+      `Apakah Anda yakin ingin menghapus ${selectedTestimonials.size} testimoni terpilih (${testimonialNames})? Tindakan ini tidak dapat dibatalkan.`,
+      async () => {
+        setIsDeleting(true);
+        let successCount = 0;
+        let errorCount = 0;
+        
+        try {
+          for (const testimonialId of selectedTestimonials) {
+            try {
+              const result = await deleteTestimonial(testimonialId);
+              if (result.success) {
+                successCount++;
+              } else {
+                errorCount++;
+              }
+            } catch (error) {
+              errorCount++;
+            }
+          }
+          
+          if (successCount > 0 && errorCount === 0) {
+            showSuccess('Berhasil!', `${successCount} testimoni berhasil dihapus`);
+          } else if (successCount > 0 && errorCount > 0) {
+            showError('Sebagian Berhasil', `${successCount} testimoni berhasil dihapus, ${errorCount} gagal dihapus`);
+          } else {
+            showError('Gagal', 'Semua testimoni gagal dihapus');
+          }
+          
+          setSelectedTestimonials(new Set());
+        } catch (error) {
+          showError('Error', 'Terjadi kesalahan yang tidak terduga');
+        } finally {
+          setIsDeleting(false);
+        }
+      }
+    );
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -132,6 +201,21 @@ export default function AdminTestimonials() {
     });
   };
 
+  // Get paginated testimonials
+  const getPaginatedTestimonials = () => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return testimonials.slice(startIndex, endIndex);
+  };
+
+  const paginatedTestimonials = getPaginatedTestimonials();
+  const totalPages = Math.ceil(testimonials.length / itemsPerPage);
+
+  // Clear selections when page changes
+  useEffect(() => {
+    setSelectedTestimonials(new Set());
+  }, [currentPage]);
+
   return (
     <div className="p-6">
       {/* Header */}
@@ -140,17 +224,33 @@ export default function AdminTestimonials() {
           <h1 className="text-3xl font-bold text-gray-900">Testimonials Management</h1>
           <p className="text-gray-600 mt-2">Manage client testimonials and reviews</p>
         </div>
-        <button
-          onClick={() => openModal()}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-brand-brown-600 hover:bg-brand-brown-700 transition-colors"
-        >
-          <PlusIcon className="w-4 h-4 mr-2" />
-          Add New Testimonial
-        </button>
+        <div className="flex items-center space-x-3">
+          {selectedTestimonials.size > 0 && (
+            <button
+              onClick={handleBulkDelete}
+              disabled={isDeleting}
+              className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white transition-colors ${
+                isDeleting
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-red-600 hover:bg-red-700'
+              }`}
+            >
+              <TrashIcon className="w-4 h-4 mr-2" />
+              {isDeleting ? 'Deleting...' : `Delete Selected (${selectedTestimonials.size})`}
+            </button>
+          )}
+          <button
+            onClick={() => openModal()}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-brand-brown-600 hover:bg-brand-brown-700 transition-colors"
+          >
+            <PlusIcon className="w-4 h-4 mr-2" />
+            Add New Testimonial
+          </button>
+        </div>
       </div>
 
-      {/* Stats */}
-      <div className="mb-8">
+      {/* Stats and Bulk Actions */}
+      <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
             <UserCircleIcon className="w-8 h-8 text-brand-brown-600" />
@@ -160,19 +260,46 @@ export default function AdminTestimonials() {
             </div>
           </div>
         </div>
+        
+        {paginatedTestimonials.length > 0 && (
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-medium text-gray-900">Bulk Actions</h3>
+                <p className="text-sm text-gray-600">{selectedTestimonials.size} selected</p>
+              </div>
+              <button
+                onClick={handleSelectAll}
+                className="text-sm text-brand-brown-600 hover:text-brand-brown-700 font-medium"
+              >
+                {selectedTestimonials.size === paginatedTestimonials.length ? 'Deselect All' : 'Select All'}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Testimonials Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {testimonials.map((testimonial) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {paginatedTestimonials.map((testimonial) => (
           <motion.div
             key={testimonial.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow"
+            className={`bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-all ${
+              selectedTestimonials.has(testimonial.id) ? 'ring-2 ring-brand-brown-500 border-brand-brown-300' : ''
+            }`}
           >
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center">
+                <div className="flex items-center mr-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedTestimonials.has(testimonial.id)}
+                    onChange={() => handleSelectTestimonial(testimonial.id)}
+                    className="rounded border-gray-300 text-brand-brown-600 focus:ring-brand-brown-500"
+                  />
+                </div>
                 <img
                   src={testimonial.avatar}
                   alt={testimonial.name}
@@ -207,6 +334,19 @@ export default function AdminTestimonials() {
           </motion.div>
         ))}
       </div>
+
+      {/* Pagination */}
+      {testimonials.length > 0 && totalPages > 1 && (
+        <div className="mb-8">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={testimonials.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
+        </div>
+      )}
 
       {testimonials.length === 0 && (
         <div className="text-center py-12">

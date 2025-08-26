@@ -11,6 +11,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useProjects } from '../contexts/ProjectsContext';
 import { useModal } from '../contexts/ModalContext';
+import Pagination from './Pagination';
 
 // Helper function to display category names in user-friendly format
 const getCategoryDisplayName = (category) => {
@@ -31,6 +32,10 @@ export default function AdminProjects() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [selectedProjects, setSelectedProjects] = useState(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -85,7 +90,29 @@ export default function AdminProjects() {
   const handleCategoryChange = (category) => {
     setSelectedCategory(category);
     setSearchQuery(''); // Clear search when changing category
+    setCurrentPage(1); // Reset to first page
   };
+
+  // Reset to first page when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  // Clear selections when filters change
+  useEffect(() => {
+    setSelectedProjects(new Set());
+  }, [selectedCategory, searchQuery, currentPage]);
+
+  // Get paginated projects
+  const getPaginatedProjects = () => {
+    const filtered = getFilteredProjects();
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filtered.slice(startIndex, endIndex);
+  };
+
+  const paginatedProjects = getPaginatedProjects();
+  const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
 
   const resetForm = () => {
     setFormData({
@@ -183,6 +210,70 @@ export default function AdminProjects() {
     );
   };
 
+  const handleSelectProject = (projectId) => {
+    setSelectedProjects(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(projectId)) {
+        newSet.delete(projectId);
+      } else {
+        newSet.add(projectId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedProjects.size === paginatedProjects.length) {
+      setSelectedProjects(new Set());
+    } else {
+      setSelectedProjects(new Set(paginatedProjects.map(p => p.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    const selectedProjectsList = paginatedProjects.filter(p => selectedProjects.has(p.id));
+    const projectNames = selectedProjectsList.map(p => p.title).join(', ');
+    
+    showConfirm(
+      'Hapus Proyek Terpilih',
+      `Apakah Anda yakin ingin menghapus ${selectedProjects.size} proyek terpilih (${projectNames})? Tindakan ini tidak dapat dibatalkan.`,
+      async () => {
+        setIsDeleting(true);
+        let successCount = 0;
+        let errorCount = 0;
+        
+        try {
+          for (const projectId of selectedProjects) {
+            try {
+              const result = await deleteProject(projectId);
+              if (result.success) {
+                successCount++;
+              } else {
+                errorCount++;
+              }
+            } catch (error) {
+              errorCount++;
+            }
+          }
+          
+          if (successCount > 0 && errorCount === 0) {
+            showSuccess('Berhasil!', `${successCount} proyek berhasil dihapus`);
+          } else if (successCount > 0 && errorCount > 0) {
+            showError('Sebagian Berhasil', `${successCount} proyek berhasil dihapus, ${errorCount} gagal dihapus`);
+          } else {
+            showError('Gagal', 'Semua proyek gagal dihapus');
+          }
+          
+          setSelectedProjects(new Set());
+        } catch (error) {
+          showError('Error', 'Terjadi kesalahan yang tidak terduga');
+        } finally {
+          setIsDeleting(false);
+        }
+      }
+    );
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -252,13 +343,29 @@ export default function AdminProjects() {
           <h1 className="text-3xl font-bold text-gray-900">Projects Management</h1>
           <p className="text-gray-600 mt-2">Manage your design projects and their image galleries</p>
         </div>
-        <button
-          onClick={() => openModal()}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-brand-brown-600 hover:bg-brand-brown-700 transition-colors"
-        >
-          <PlusIcon className="w-4 h-4 mr-2" />
-          Add New Project
-        </button>
+        <div className="flex items-center space-x-3">
+          {selectedProjects.size > 0 && (
+            <button
+              onClick={handleBulkDelete}
+              disabled={isDeleting}
+              className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white transition-colors ${
+                isDeleting
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-red-600 hover:bg-red-700'
+              }`}
+            >
+              <TrashIcon className="w-4 h-4 mr-2" />
+              {isDeleting ? 'Deleting...' : `Delete Selected (${selectedProjects.size})`}
+            </button>
+          )}
+          <button
+            onClick={() => openModal()}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-brand-brown-600 hover:bg-brand-brown-700 transition-colors"
+          >
+            <PlusIcon className="w-4 h-4 mr-2" />
+            Add New Project
+          </button>
+        </div>
       </div>
 
       {/* Search and Filters */}
@@ -328,6 +435,23 @@ export default function AdminProjects() {
             )}
           </div>
         )}
+
+        {/* Bulk Actions Info */}
+        {paginatedProjects.length > 0 && (
+          <div className="flex items-center justify-between bg-white rounded-lg shadow p-4">
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-gray-600">
+                {selectedProjects.size} of {paginatedProjects.length} projects selected
+              </span>
+            </div>
+            <button
+              onClick={handleSelectAll}
+              className="text-sm text-brand-brown-600 hover:text-brand-brown-700 font-medium"
+            >
+              {selectedProjects.size === paginatedProjects.length ? 'Deselect All' : 'Select All'}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Projects Table */}
@@ -338,7 +462,7 @@ export default function AdminProjects() {
           </h3>
         </div>
         
-        {filteredProjects.length === 0 ? (
+        {paginatedProjects.length === 0 ? (
           <div className="text-center py-12">
             <PhotoIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-sm font-medium text-gray-900 mb-2">No projects found</h3>
@@ -354,6 +478,14 @@ export default function AdminProjects() {
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <input
+                      type="checkbox"
+                      checked={paginatedProjects.length > 0 && selectedProjects.size === paginatedProjects.length}
+                      onChange={handleSelectAll}
+                      className="rounded border-gray-300 text-brand-brown-600 focus:ring-brand-brown-500"
+                    />
+                  </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Project
                   </th>
@@ -372,8 +504,16 @@ export default function AdminProjects() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredProjects.map((project) => (
+                {paginatedProjects.map((project) => (
                   <tr key={project.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedProjects.has(project.id)}
+                        onChange={() => handleSelectProject(project.id)}
+                        className="rounded border-gray-300 text-brand-brown-600 focus:ring-brand-brown-500"
+                      />
+                    </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-16 w-16">
@@ -433,6 +573,17 @@ export default function AdminProjects() {
               </tbody>
             </table>
           </div>
+        )}
+        
+        {/* Pagination */}
+        {filteredProjects.length > 0 && totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredProjects.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
         )}
       </div>
 
