@@ -10,7 +10,7 @@ export const useTestimonials = () => {
   return context;
 };
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = 'http://api.s2design.id/api';
 
 export const TestimonialsProvider = ({ children }) => {
   const [testimonials, setTestimonials] = useState([]);

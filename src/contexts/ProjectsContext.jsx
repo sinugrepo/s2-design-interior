@@ -10,7 +10,7 @@ export const useProjects = () => {
   return context;
 };
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = 'http://api.s2design.id/api';
 
 export const ProjectsProvider = ({ children }) => {
   const [projects, setProjects] = useState([]);
