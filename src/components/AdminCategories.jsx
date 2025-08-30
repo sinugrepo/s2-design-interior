@@ -26,7 +26,7 @@ export default function AdminCategories() {
     display_name: ''
   });
 
-  const API_BASE_URL = 'http://api.s2design.id/api';
+  const API_BASE_URL = 'https://api.s2design.id//api';
 
   // Create new category
   const createCategory = async (categoryData) => {
